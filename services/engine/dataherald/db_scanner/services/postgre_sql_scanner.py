@@ -13,8 +13,8 @@ class PostgreSqlScanner(AbstractScanner):
     @override
     def cardinality_values(self, column: Column, db_engine: SQLDatabase) -> list | None:
         rs = db_engine.engine.execute(
-            f"SELECT n_distinct, most_common_vals::TEXT::TEXT[] FROM pg_catalog.pg_stats WHERE tablename = '{column.table.name}' AND attname = '{column.name}'"  # noqa: S608 E501
-        ).fetchall()
+            "SELECT n_distinct, most_common_vals::TEXT::TEXT[] FROM pg_catalog.pg_stats WHERE tablename = ? AND attname = ?",   # noqa: S608 E501
+        (column.table.name, column.name, )).fetchall()
 
         if (
             len(rs) > 0
