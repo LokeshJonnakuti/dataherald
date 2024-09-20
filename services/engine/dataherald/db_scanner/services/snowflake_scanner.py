@@ -38,8 +38,8 @@ class SnowflakeScanner(AbstractScanner):
         database_name = db_engine.engine.url.database.split("/")[0]
         filter_date = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
         rows = db_engine.engine.execute(
-            f"select QUERY_TEXT, USER_NAME, count(*) as occurrences from TABLE(INFORMATION_SCHEMA.QUERY_HISTORY()) where DATABASE_NAME = '{database_name}' and QUERY_TYPE = 'SELECT' and EXECUTION_STATUS = 'SUCCESS' and START_TIME > '{filter_date}' and QUERY_TEXT like '%FROM {table}%' and QUERY_TEXT not like '%QUERY_HISTORY%' group by QUERY_TEXT, USER_NAME ORDER BY occurrences DESC limit {MAX_LOGS}"  # noqa: S608 E501
-        ).fetchall()
+            f"select QUERY_TEXT, USER_NAME, count(*) as occurrences from TABLE(INFORMATION_SCHEMA.QUERY_HISTORY()) where DATABASE_NAME = ? and QUERY_TYPE = 'SELECT' and EXECUTION_STATUS = 'SUCCESS' and START_TIME > ? and QUERY_TEXT like ? and QUERY_TEXT not like '%QUERY_HISTORY%' group by QUERY_TEXT, USER_NAME ORDER BY occurrences DESC limit {MAX_LOGS}",   # noqa: S608 E501
+        (database_name, filter_date, '%FROM {0}%'.format(table), )).fetchall()
         return [
             QueryHistory(
                 db_connection_id=db_connection_id,

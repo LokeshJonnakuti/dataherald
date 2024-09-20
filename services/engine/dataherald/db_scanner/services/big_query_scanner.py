@@ -41,8 +41,8 @@ class BigQueryScanner(AbstractScanner):
     ) -> list[QueryHistory]:
         filter_date = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
         rows = db_engine.engine.execute(
-            f"SELECT query, user_email, count(*) as occurrences FROM `region-us.INFORMATION_SCHEMA.JOBS`, UNNEST(referenced_tables) AS t where job_type = 'QUERY' and statement_type = 'SELECT' and t.table_id = '{table}' and state = 'DONE' and creation_time >='{filter_date}' group by query, user_email ORDER BY occurrences DESC limit {MAX_LOGS}"  # noqa: S608 E501
-        ).fetchall()
+            f"SELECT query, user_email, count(*) as occurrences FROM `region-us.INFORMATION_SCHEMA.JOBS`, UNNEST(referenced_tables) AS t where job_type = 'QUERY' and statement_type = 'SELECT' and t.table_id = ? and state = 'DONE' and creation_time >=? group by query, user_email ORDER BY occurrences DESC limit {MAX_LOGS}",   # noqa: S608 E501
+        (table, filter_date, )).fetchall()
         return [
             QueryHistory(
                 db_connection_id=db_connection_id,
